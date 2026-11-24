@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic AI, RAG & MCPs</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #202124; color: #E8EAED; overflow: hidden; height: 100vh; }
+  .slide { display: none; width: 100vw; height: 100vh; padding: 60px 80px; flex-direction: column; justify-content: center; position: relative; }
+  .slide.active { display: flex; }
+  .slide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 20% 50%, rgba(66,133,244,0.08), transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(52,168,83,0.06), transparent 50%); pointer-events: none; }
+  .slide::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #4285F4); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+  @keyframes shimmer { 0%,100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+  .slide-number { position: absolute; bottom: 30px; right: 50px; font-size: 14px; color: #80868B; font-weight: 600; }
+  .slide-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05); transition: width 0.4s ease; }
+  h1 { font-size: 3.5em; font-weight: 800; background: linear-gradient(135deg, #E8EAED, #8AB4F8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.3em; line-height: 1.2; }
+  h2 { font-size: 2.2em; font-weight: 700; color: #E8EAED; margin-bottom: 0.5em; }
+  h3 { font-size: 1.5em; font-weight: 600; color: #81C995; margin-bottom: 0.4em; }
+  p, li { font-size: 1.15em; line-height: 1.7; color: #BDC1C6; }
+  ul { list-style: none; padding: 0; }
+  li { margin: 8px 0; padding-left: 24px; position: relative; }
+  li::before { content: '->'; position: absolute; left: 0; color: #8AB4F8; font-weight: 700; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-top: 20px; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 24px; backdrop-filter: blur(8px); }
+  .card h3 { font-size: 1.2em; margin-bottom: 10px; color: #8AB4F8; }
+  .card p { font-size: 0.95em; }
+  .tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 600; margin: 3px; background: rgba(66,133,244,0.15); color: #AECBFA; border: 1px solid rgba(66,133,244,0.25); }
+  .hero { text-align: center; }
+  .hero p { font-size: 1.3em; color: #9AA0A6; max-width: 700px; margin: 0 auto; }
+  .subtitle { font-size: 1.2em; color: #9AA0A6; margin-bottom: 30px; }
+  .footnote { position: absolute; bottom: 60px; left: 80px; font-size: 0.85em; color: #80868B; }
+  .nav { position: fixed; bottom: 80px; right: 50px; display: flex; gap: 12px; z-index: 100; }
+  .nav button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #E8EAED; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 18px; transition: all 0.2s; }
+  .nav button:hover { background: rgba(66,133,244,0.2); border-color: #4285F4; }
+  .code { font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 10px; font-size: 0.9em; color: #AECBFA; border-left: 3px solid #4285F4; margin: 10px 0; overflow-x: auto; }
+  .flow-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step { background: rgba(66,133,244,0.12); border: 1px solid rgba(66,133,244,0.2); border-radius: 10px; padding: 10px 18px; font-size: 0.95em; color: #AECBFA; }
+  .flow-arrow { color: #80868B; font-size: 1.2em; }
+  .highlight { color: #8AB4F8; font-weight: 600; }
+  .diagram-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 30px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; line-height: 2; color: #AECBFA; margin: 15px 0; }
+  .two-col { display: flex; gap: 40px; align-items: center; }
+  .two-col > * { flex: 1; }
+  @media (max-width: 768px) { .slide { padding: 30px 24px; } h1 { font-size: 2em; } h2 { font-size: 1.5em; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .two-col { flex-direction: column; } .nav { bottom: 20px; right: 20px; } }
+</style>
+</head>
+<body>
+
+<!-- ===== SLIDE 1: TITLE ===== -->
+<div class="slide active" data-slide="1">
+  <div class="hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div style="font-size:0.9em;letter-spacing:4px;color:#80868B;margin-bottom:20px;text-transform:uppercase;">Deep Dive 2026</div>
+    <h1 style="font-size:4.5em;">Agentic AI,<br>RAG &amp; MCPs</h1>
+    <p style="font-size:1.4em;color:#9AA0A6;margin-top:20px;">The Trinity of Modern Intelligent Systems</p>
+    <div style="margin-top:40px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <span class="tag">Agentic AI</span>
+      <span class="tag">Retrieval-Augmented Generation</span>
+      <span class="tag">Model Context Protocol</span>
+    </div>
+  </div>
+  <div class="slide-number">1 / 50</div><div class="slide-progress" style="width:2%"></div>
+</div>
+
+<!-- ===== SLIDE 2: AGENDA ===== -->
+<div class="slide" data-slide="2">
+  <h2>Agenda</h2>
+  <div class="grid-3" style="margin-top:30px;">
+    <div class="card"><h3>Part I</h3><p>Agentic AI<br><span style="color:#80868B;font-size:0.85em;">Foundations, architecture, multi-agent systems, tool use, planning, memory, safety</span></p></div>
+    <div class="card"><h3>Part II</h3><p>Retrieval-Augmented Generation<br><span style="color:#80868B;font-size:0.85em;">Chunking, embedding, vector search, hybrid retrieval, evaluation, advanced RAG patterns</span></p></div>
+    <div class="card"><h3>Part III</h3><p>Model Context Protocol<br><span style="color:#80868B;font-size:0.85em;">Protocol design, transport, tools/resources/prompts, security, ecosystem, real-world use</span></p></div>
+  </div>
+  <div class="slide-number">2 / 50</div><div class="slide-progress" style="width:4%"></div>
+</div>
+
+<!-- ===== SLIDE 3: PART I INTRO ===== -->
+<div class="slide" data-slide="3">
+  <div class="hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div style="font-size:0.85em;letter-spacing:3px;color:#80868B;margin-bottom:10px;text-transform:uppercase;">Part I</div>
+    <h1>Agentic AI</h1>
+    <p class="subtitle">From passive chatbots to autonomous agents</p>
+  </div>
+  <div class="slide-number">3 / 50</div><div class="slide-progress" style="width:6%"></div>
+</div>
+
+<!-- ===== SLIDE 4: WHAT IS AGENTIC AI ===== -->
+<div class="slide" data-slide="4">
+  <h2>What is Agentic AI?</h2>
+  <div class="two-col">
+    <div>
+      <p style="margin-bottom:20px;">An <span class="highlight">agentic AI system</span> perceives its environment, reasons about goals, and takes autonomous actions to achieve them — without step-by-step human instruction.</p>
+      <ul>
+        <li><span class="highlight">Autonomy</span> — acts independently within bounds</li>
+        <li><span class="highlight">Goal-oriented</span> — optimizes toward objectives</li>
+        <li><span class="highlight">Tool use</span> — calls APIs, queries databases, runs code</li>
+        <li><span class="highlight">Memory</span> — retains context across interactions</li>
+        <li><span class="highlight">Self-reflection</span> — evaluates and corrects own output</li>
+      </ul>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:3em;margin-bottom:10px;">&#129302;</div>
+      <h3>Agent Loop</h3>
+      <div class="code" style="text-align:left;">Perceive -> Reason -> Act<br>          ^_________|</div>
+    </div>
+  </div>
+  <div class="slide-number">4 / 50</div><div class="slide-progress" style="width:8%"></div>
+</div>
+
+<!-- ===== SLIDE 5: LLM AS CORE ===== -->
+<div class="slide" data-slide="5">
+  <h2>The LLM at the Core</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Reasoning Engine</h3>
+      <p>LLMs provide chain-of-thought, step-by-step planning, and the ability to decompose complex tasks into sub-tasks.</p>
+    </div>
+    <div class="card">
+      <h3>Natural Language Interface</h3>
+      <p>Humans interact in plain language. The agent translates intent into structured actions.</p>
+    </div>
+    <div class="card">
+      <h3>Code Generation</h3>
+      <p>Many agents write and execute Python/shell code as a primary tool for computation and data manipulation.</p>
+    </div>
+    <div class="card">
+      <h3>Self-Correction</h3>
+      <p>Agents critique their own outputs, retry on failure, and learn from mistakes within a session.</p>
+    </div>
+  </div>
+  <div class="slide-number">5 / 50</div><div class="slide-progress" style="width:10%"></div>
+</div>
+
+<!-- ===== SLIDE 6: AGENT ARCHITECTURE ===== -->
+<div class="slide" data-slide="6">
+  <h2>Agent Architecture</h2>
+  <div class="diagram-box">
+    +-----------+     +----------+     +----------+<br>
+    |  Perception| --> |  Brain   | --> |  Action   |<br>
+    | (Input)   |     | (LLM)    |     | (Tools)   |<br>
+    +-----------+     +----------+     +----------+<br>
+          ^                |                |<br>
+          |                v                |<br>
+          |        +-----------+            |<br>
+          +------  |  Memory   | <----------+<br>
+                   | (Short+Long)|<br>
+                   +-----------+
+  </div>
+  <div class="grid-3" style="margin-top:10px;">
+    <div class="card"><h3>Perception</h3><p>User messages, sensor data, file contents, web pages, API responses</p></div>
+    <div class="card"><h3>Reasoning</h3><p>LLM call with system prompt, tools schema, conversation history, planning instructions</p></div>
+    <div class="card"><h3>Execution</h3><p>Function calls, code execution, API invocations, file writes, UI actions</p></div>
+  </div>
+  <div class="slide-number">6 / 50</div><div class="slide-progress" style="width:12%"></div>
+</div>
+
+<!-- ===== SLIDE 7: TOOL USE ===== -->
+<div class="slide" data-slide="7">
+  <h2>Tool Use &amp; Function Calling</h2>
+  <p style="margin-bottom:20px;">Agents declare tools as structured JSON schemas. The LLM selects which tool to call and with what arguments.</p>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Tool Schema Example</h3>
+      <div class="code">{
+  "name": "search_web",
+  "description": "Search the internet",
+  "parameters": {
+    "query": { "type": "string" }
+  }
+}</div>
+    </div>
+    <div class="card">
+      <h3>Common Tool Categories</h3>
+      <ul>
+        <li>Web search &amp; browsing</li>
+        <li>Code execution (Python/shell)</li>
+        <li>File system read/write</li>
+        <li>Database queries</li>
+        <li>API integrations (Slack, email, etc.)</li>
+        <li>Image generation / analysis</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">7 / 50</div><div class="slide-progress" style="width:14%"></div>
+</div>
+
+<!-- ===== SLIDE 8: PLANNING ===== -->
+<div class="slide" data-slide="8">
+  <h2>Planning &amp; Decomposition</h2>
+  <p>Complex tasks are broken into manageable sub-tasks. Two dominant approaches:</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>ReAct (Reason + Act)</h3>
+      <p>Interleaves reasoning traces with actions. Each step: <span class="highlight">Thought -> Action -> Observation</span>.</p>
+      <div class="code">Thought: I need to find Q3 revenue.<br>Action: search("Q3 2025 revenue report")<br>Observation: Found report at example.com</div>
+    </div>
+    <div class="card">
+      <h3>Plan-ahead (Tree/Graph)</h3>
+      <p>LLM generates a multi-step plan upfront, then executes. Supports backtracking and replanning on failure.</p>
+      <div class="code">Plan: [1. Search docs, 2. Extract values,<br>       3. Compute total, 4. Format output]</div>
+    </div>
+  </div>
+  <div class="slide-number">8 / 50</div><div class="slide-progress" style="width:16%"></div>
+</div>
+
+<!-- ===== SLIDE 9: MEMORY ===== -->
+<div class="slide" data-slide="9">
+  <h2>Memory Systems</h2>
+  <div class="grid-3" style="margin-top:20px;">
+    <div class="card">
+      <h3>Short-term (Context)</h3>
+      <p>Conversation history within the LLM context window. Manages token budgets via sliding window or summarization.</p>
+    </div>
+    <div class="card">
+      <h3>Episodic Memory</h3>
+      <p>Stores past interactions, outcomes, and reflections. Retrieved via vector similarity when relevant.</p>
+    </div>
+    <div class="card">
+      <h3>Procedural Memory</h3>
+      <p>Learned skills, reusable patterns, and cached tool outputs. Persists across sessions.</p>
+    </div>
+  </div>
+  <div class="diagram-box" style="margin-top:15px;">
+    User Input -> [Short-term Context Window] <-> [Episodic Vector Store] <-> [Procedural Cache]
+  </div>
+  <div class="slide-number">9 / 50</div><div class="slide-progress" style="width:18%"></div>
+</div>
+
+<!-- ===== SLIDE 10: MULTI-AGENT SYSTEMS ===== -->
+<div class="slide" data-slide="10">
+  <h2>Multi-Agent Systems</h2>
+  <p>Multiple specialized agents collaborate, debate, and delegate to solve complex tasks.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Architecture Patterns</h3>
+      <ul>
+        <li><span class="highlight">Orchestrator</span> — Central agent delegates to workers</li>
+        <li><span class="highlight">Debate</span> — Agents argue positions, synthesizing better answers</li>
+        <li><span class="highlight">Pipeline</span> — Sequential handoff between specialists</li>
+        <li><span class="highlight">Swarm</span> — Emergent behavior from simple agent rules</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Example: Research Agent</h3>
+      <div class="code">Planner -> [Searcher, Scraper,<br>            Analyst, Writer] -> Reviewer</div>
+      <p style="margin-top:10px;">Each agent specializes. The orchestrator coordinates, reviews quality, and handles failures.</p>
+    </div>
+  </div>
+  <div class="slide-number">10 / 50</div><div class="slide-progress" style="width:20%"></div>
+</div>
+
+<!-- ===== SLIDE 11: AGENT-AGENT COMMUNICATION ===== -->
+<div class="slide" data-slide="11">
+  <h2>Agent-to-Agent Communication</h2>
+  <p>Agents need structured protocols to coordinate, share context, and resolve conflicts.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Message Passing</h3>
+      <p>Agents exchange typed messages (e.g., JSON) containing intent, data, and results. Supports pub/sub or direct routing.</p>
+    </div>
+    <div class="card">
+      <h3>Shared Context / Blackboard</h3>
+      <p>A common data store where agents read and write intermediate results. Useful for parallel execution.</p>
+    </div>
+    <div class="card">
+      <h3>Tool-Based Handoff</h3>
+      <p>One agent calls another agent as if it were a tool, passing control and receiving results synchronously.</p>
+    </div>
+    <div class="card">
+      <h3>Emerging Standards</h3>
+      <p>Protocols like <span class="highlight">A2A</span> (Agent-to-Agent) are emerging to standardize inter-agent contracts.</p>
+    </div>
+  </div>
+  <div class="slide-number">11 / 50</div><div class="slide-progress" style="width:22%"></div>
+</div>
+
+<!-- ===== SLIDE 12: POPULAR FRAMEWORKS ===== -->
+<div class="slide" data-slide="12">
+  <h2>Agent Frameworks (2026)</h2>
+  <div class="grid-3">
+    <div class="card"><h3>LangGraph</h3><p>Graph-based state machine for agents. Nodes = steps, edges = transitions. Built-in persistence, streaming, human-in-the-loop.</p></div>
+    <div class="card"><h3>CrewAI</h3><p>Multi-agent orchestration with role-based agents, task delegation, and built-in tooling. Python-native, simple API.</p></div>
+    <div class="card"><h3>AutoGen (Microsoft)</h3><p>Multi-agent conversations with flexible agent roles, code execution, and group chat patterns.</p></div>
+    <div class="card"><h3>OpenAI Agents SDK</h3><p>Lightweight SDK for single and multi-agent apps with guardrails, handoffs, and tracing.</p></div>
+    <div class="card"><h3>Semantic Kernel</h3><p>Microsoft's AI orchestration SDK. Planners, memory, connectors. Deep Azure integration.</p></div>
+    <div class="card"><h3>Dify / Coze</h3><p>Visual agent builders with drag-and-drop workflows, tool marketplace, and no-code agent creation.</p></div>
+  </div>
+  <div class="slide-number">12 / 50</div><div class="slide-progress" style="width:24%"></div>
+</div>
+
+<!-- ===== SLIDE 13: SAFETY & GUARDRAILS ===== -->
+<div class="slide" data-slide="13">
+  <h2>Safety &amp; Guardrails</h2>
+  <p>Autonomous action introduces risk. Every agent system needs layered safety mechanisms.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Input Guardrails</h3>
+      <ul>
+        <li>Prompt injection detection</li>
+        <li>Topic/domain restrictions</li>
+        <li>Jailbreak resistance</li>
+        <li>PII redaction</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Output Guardrails</h3>
+      <ul>
+        <li>Content moderation</li>
+        <li>Tool-call validation</li>
+        <li>Human-in-the-loop approval</li>
+        <li>Rate limiting &amp; budgets</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Runtime Safety</h3>
+      <ul>
+        <li>Sandboxed code execution</li>
+        <li>Maximum step limits</li>
+        <li>Idempotency keys</li>
+        <li>Audit logging</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Observability</h3>
+      <ul>
+        <li>Full trace capture</li>
+        <li>Cost tracking per-step</li>
+        <li>Failure mode analysis</li>
+        <li>Behavioral monitoring</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">13 / 50</div><div class="slide-progress" style="width:26%"></div>
+</div>
+
+<!-- ===== SLIDE 14: CHALLENGES ===== -->
+<div class="slide" data-slide="14">
+  <h2>Agentic AI — Key Challenges</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Hallucination &amp; Reliability</h3><p>Agents confidently take wrong actions. Mitigations: verification loops, tool-grounding, confidence thresholds.</p></div>
+    <div class="card"><h3>Context Window Limits</h3><p>Long-running agents exceed context budgets. Solutions: summarization, sliding windows, external memory.</p></div>
+    <div class="card"><h3>Error Recovery</h3><p>Agents must detect failures, retry intelligently, and know when to escalate to a human.</p></div>
+    <div class="card"><h3>Cost &amp; Latency</h3><p>Multi-step reasoning is expensive. Caching, model selection, and parallel execution help manage costs.</p></div>
+    <div class="card"><h3>Evaluation</h3><p>How do you grade an autonomous agent? Complex trajectory evaluation, outcome scoring, and simulation-based testing.</p></div>
+    <div class="card"><h3>Security</h3><p>Tool misuse, prompt injection, data exfiltration. Need sandboxing, permission models, and input validation.</p></div>
+  </div>
+  <div class="slide-number">14 / 50</div><div class="slide-progress" style="width:28%"></div>
+</div>
+
+<!-- ===== SLIDE 15: EVALUATING AGENTS ===== -->
+<div class="slide" data-slide="15">
+  <h2>Evaluating Agent Systems</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Outcome Metrics</h3>
+      <ul>
+        <li>Task success rate</li>
+        <li>Steps to completion</li>
+        <li>Cost per task</li>
+        <li>Human escalation rate</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Process Metrics</h3>
+      <ul>
+        <li>Tool call accuracy</li>
+        <li>Recovery rate after failure</li>
+        <li>Context window utilization</li>
+        <li>Response latency</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Adversarial Testing</h3>
+      <ul>
+        <li>Prompt injection resilience</li>
+        <li>Edge case handling</li>
+        <li>Budget abuse prevention</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Tools</h3>
+      <ul>
+        <li>LangSmith / LangFuse</li>
+        <li>Arize Phoenix</li>
+        <li>Weights &amp; Biases</li>
+        <li>Custom trajectory scoring</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">15 / 50</div><div class="slide-progress" style="width:30%"></div>
+</div>
+
+<!-- ===== SLIDE 16: THE FUTURE OF AGENTS ===== -->
+<div class="slide" data-slide="16">
+  <h2>Where Agentic AI Is Heading</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Continuous Learning</h3><p>Agents that improve from feedback and outcomes across sessions — not just within a single context window.</p></div>
+    <div class="card"><h3>Agent Marketplaces</h3><p>Buy/sell pre-built agents for specific domains: customer support, data analysis, DevOps, legal research.</p></div>
+    <div class="card"><h3>Enterprise Agent Mesh</h3><p>Interconnected agents across departments sharing context, tools, and governance — the "operating system" of the company.</p></div>
+    <div class="card"><h3>On-Device Agents</h3><p>Small, fast models running locally for privacy-sensitive tasks. Hybrid cloud/edge architectures.</p></div>
+    <div class="card"><h3>Regulation &amp; Standards</h3><p>Emerging frameworks for agent accountability, disclosure (AI acting autonomously), and audit trails.</p></div>
+    <div class="card"><h3>Human-Agent Collaboration</h3><p>Agents as copilots, not replacements. Dynamic handoff, shared context, and mixed-initiative interaction.</p></div>
+  </div>
+  <div class="slide-number">16 / 50</div><div class="slide-progress" style="width:32%"></div>
+</div>
+
+<!-- ===== SLIDE 17: PART II INTRO ===== -->
+<div class="slide" data-slide="17">
+  <div class="hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div style="font-size:0.85em;letter-spacing:3px;color:#80868B;margin-bottom:10px;text-transform:uppercase;">Part II</div>
+    <h1>Retrieval-Augmented Generation</h1>
+    <p class="subtitle">Grounding LLMs in external knowledge</p>
+  </div>
+  <div class="slide-number">17 / 50</div><div class="slide-progress" style="width:34%"></div>
+</div>
+
+<!-- ===== SLIDE 18: WHY RAG ===== -->
+<div class="slide" data-slide="18">
+  <h2>Why RAG?</h2>
+  <div class="two-col">
+    <div>
+      <p>LLMs are <span class="highlight">frozen in time</span> at training cutoff. They hallucinate, lack access to private data, and cannot cite sources. RAG solves this by retrieving relevant documents at inference time.</p>
+      <ul>
+        <li>Up-to-date information</li>
+        <li>Access to proprietary/private data</li>
+        <li>Verifiable citations &amp; grounding</li>
+        <li>Reduced hallucination</li>
+        <li>Cost-effective knowledge updates</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>RAG vs Fine-Tuning</h3>
+      <div class="code" style="white-space:pre-wrap;">Fine-Tuning: Memorization
+  - Expensive to retrain
+  - Can't update facts easily
+  - Risk of catastrophic forgetting
+
+RAG: Retrieval at inference
+  - Zero retraining cost
+  - Instant knowledge updates
+  - Source-attributable answers</div>
+    </div>
+  </div>
+  <div class="slide-number">18 / 50</div><div class="slide-progress" style="width:36%"></div>
+</div>
+
+<!-- ===== SLIDE 19: RAG ARCHITECTURE ===== -->
+<div class="slide" data-slide="19">
+  <h2>Classic RAG Architecture</h2>
+  <div class="diagram-box">
+    +----------+    +----------+    +----------+    +----------+<br>
+    | Documents | -> | Chunking | -> | Embedding | -> | Vector DB |<br>
+    +----------+    +----------+    +----------+    +----------+<br>
+                                                           |<br>
+    User Query ----------------------> [Query Embedding] --+<br>
+                                                           |<br>
+                                                           v<br>
+    +----------+    +----------+    +----------+    +----------+<br>
+    |  Answer   | <- |   LLM    | <- | Context  | <- | Retrieval |<br>
+    +----------+    +----------+    +----------+    +----------+<br>
+  </div>
+  <p style="text-align:center;margin-top:10px;color:#9AA0A6;">Indexing pipeline (offline) + Retrieval pipeline (online)</p>
+  <div class="slide-number">19 / 50</div><div class="slide-progress" style="width:38%"></div>
+</div>
+
+<!-- ===== SLIDE 20: CHUNKING STRATEGIES ===== -->
+<div class="slide" data-slide="20">
+  <h2>Chunking Strategies</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Fixed-Size Chunking</h3><p>Split by token count with overlap. Simple but can break semantic units (e.g., splitting a table in half).</p></div>
+    <div class="card"><h3>Semantic Chunking</h3><p>Split at natural boundaries: paragraphs, sections, markdown headers. Preserves meaning.</p></div>
+    <div class="card"><h3>Agentic Chunking</h3><p>Use an LLM to identify logical chunks. Most expensive but best quality for complex docs.</p></div>
+    <div class="card"><h3>Late Chunking</h3><p>Embed full document then extract chunk vectors from contextualized representations. Best of both worlds.</p></div>
+  </div>
+  <div class="code" style="margin-top:10px;">Chunk Size: 256-1024 tokens | Overlap: 10-20% | Strategy depends on document type</div>
+  <div class="slide-number">20 / 50</div><div class="slide-progress" style="width:40%"></div>
+</div>
+
+<!-- ===== SLIDE 21: EMBEDDINGS ===== -->
+<div class="slide" data-slide="21">
+  <h2>Embeddings &amp; Vector Search</h2>
+  <div class="two-col">
+    <div>
+      <p>Embeddings convert text into dense numerical vectors. Semantically similar texts produce nearby vectors.</p>
+      <ul>
+        <li><span class="highlight">OpenAI text-embedding-3-small/large</span> — 1536/3072 dims</li>
+        <li><span class="highlight">Cohere Embed v3</span> — multi-lingual, 1024 dims</li>
+        <li><span class="highlight">voyage-2</span> — optimized for RAG, 1024 dims</li>
+        <li><span class="highlight">BGE / E5</span> — open-source, SOTA</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Similarity Measures</h3>
+      <div class="code">Cosine Similarity<br>  cos(A,B) = A.B / (|A|*|B|)<br><br>Dot Product (normalized)<br>  same as cosine for L2-normed vecs<br><br>L2 Distance<br>  sqrt(sum((Ai-Bi)^2))</div>
+    </div>
+  </div>
+  <div class="slide-number">21 / 50</div><div class="slide-progress" style="width:42%"></div>
+</div>
+
+<!-- ===== SLIDE 22: VECTOR DATABASES ===== -->
+<div class="slide" data-slide="22">
+  <h2>Vector Databases</h2>
+  <div class="grid-3">
+    <div class="card"><h3>Pinecone</h3><p>Fully managed, serverless. High performance, hybrid search, metadata filtering. Good for production at scale.</p></div>
+    <div class="card"><h3>Weaviate</h3><p>Open-source, hybrid (vector + keyword). Built-in modules for Q&amp;A, summarization, generative search.</p></div>
+    <div class="card"><h3>Qdrant</h3><p>Rust-based, fast filtering, quantization support. Self-hosted or cloud. Very developer-friendly.</p></div>
+    <div class="card"><h3>Milvus / Zilliz</h3><p>Cloud-native, GPU-accelerated. Handles billion-scale with sharding and replication.</p></div>
+    <div class="card"><h3>ChromaDB</h3><p>Lightweight, embedded. Great for prototyping. In-memory with optional persistence.</p></div>
+    <div class="card"><h3>pgvector</h3><p>PostgreSQL extension. Perfect if you already use Postgres. IVFFlat and HNSW indexes.</p></div>
+  </div>
+  <div class="slide-number">22 / 50</div><div class="slide-progress" style="width:44%"></div>
+</div>
+
+<!-- ===== SLIDE 23: HYBRID SEARCH ===== -->
+<div class="slide" data-slide="23">
+  <h2>Hybrid Search</h2>
+  <div class="two-col">
+    <div>
+      <p>Vector search finds <span class="highlight">semantic</span> matches but can miss exact keyword matches. Keyword search (BM25) excels at exact terms. <span class="highlight">Hybrid</span> combines both with reciprocal rank fusion (RRF).</p>
+      <div class="code" style="margin-top:15px;">score = w1 * vector_score + w2 * bm25_score<br><br>RRF: score = sum(1 / (k + rank_i))<br><br>Typical weight: 0.5 / 0.5<br>or tuned per domain</div>
+    </div>
+    <div class="card">
+      <h3>When Hybrid Wins</h3>
+      <ul>
+        <li>Code search (exact symbols + semantics)</li>
+        <li>Medical/legal (precise terminology)</li>
+        <li>Product search (brand names + intent)</li>
+        <li>Multi-lingual corpora</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">23 / 50</div><div class="slide-progress" style="width:46%"></div>
+</div>
+
+<!-- ===== SLIDE 24: METADATA FILTERING ===== -->
+<div class="slide" data-slide="24">
+  <h2>Metadata Filtering &amp; Pre-Retrieval</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Pre-Retrieval Techniques</h3>
+      <ul>
+        <li><span class="highlight">Query rewriting</span> — expand/rewrite user query for better recall</li>
+        <li><span class="highlight">Query decomposition</span> — split complex queries into sub-queries</li>
+        <li><span class="highlight">HyDE</span> — generate hypothetical document, embed that</li>
+        <li><span class="highlight">Step-back prompting</span> — retrieve broader context first</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Metadata Filters</h3>
+      <div class="code">{
+  "filter": {
+    "date": {"$gte": "2025-01-01"},
+    "author": "John Doe",
+    "category": {"$in": ["tech", "science"]}
+  }
+}</div>
+      <p style="margin-top:10px;">Reduces search space, improves relevance. Critical for enterprise RAG.</p>
+    </div>
+  </div>
+  <div class="slide-number">24 / 50</div><div class="slide-progress" style="width:48%"></div>
+</div>
+
+<!-- ===== SLIDE 25: POST-RETRIEVAL ===== -->
+<div class="slide" data-slide="25">
+  <h2>Post-Retrieval Enhancement</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Re-ranking</h3>
+      <p>A cross-encoder (e.g., Cohere Rerank, BGE Reranker) scores retrieved chunks against the query for precision. Top-3 from top-20.</p>
+      <div class="code">Query + Chunk[0..19] -> Reranker -> Top 3</div>
+    </div>
+    <div class="card">
+      <h3>Context Compression</h3>
+      <p>LLM extracts only relevant sentences from retrieved chunks. Reduces token usage and noise.</p>
+    </div>
+    <div class="card">
+      <h3>Fusion</h3>
+      <p>Multiple retrieval sources (vector + keyword + graph) fused into one ranked set before LLM.</p>
+    </div>
+    <div class="card">
+      <h3>Citation Extraction</h3>
+      <p>Map generated sentences back to source chunks. Enables grounded, verifiable answers.</p>
+    </div>
+  </div>
+  <div class="slide-number">25 / 50</div><div class="slide-progress" style="width:50%"></div>
+</div>
+
+<!-- ===== SLIDE 26: ADVANCED RAG PATTERNS ===== -->
+<div class="slide" data-slide="26">
+  <h2>Advanced RAG Patterns</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Agentic RAG</h3>
+      <p>An agent decides when and how to retrieve. It can ask clarifying questions, iterate on search, and combine multiple sources autonomously.</p>
+    </div>
+    <div class="card">
+      <h3>Self-RAG</h3>
+      <p>LLM generates special tokens to reflect on relevance, support, and usefulness of retrieved passages. Decides whether to retrieve at all.</p>
+    </div>
+    <div class="card">
+      <h3>Corrective RAG (CRAG)</h3>
+      <p>If retrieved docs are irrelevant, the system triggers web search or retries with a different query. Automatic fallback.</p>
+    </div>
+    <div class="card">
+      <h3>Graph RAG</h3>
+      <p>Extract entities and relationships into a knowledge graph. Answer questions by traversing the graph + vector retrieval.</p>
+    </div>
+    <div class="card">
+      <h3>Multi-Modal RAG</h3>
+      <p>Retrieve images, tables, audio alongside text. Use vision-language models for answers grounded in multi-modal context.</p>
+    </div>
+    <div class="card">
+      <h3>Streaming / Real-Time RAG</h3>
+      <p>Continuously index streaming data (news, logs, chats). Freshness-aware retrieval prioritizes recency.</p>
+    </div>
+  </div>
+  <div class="slide-number">26 / 50</div><div class="slide-progress" style="width:52%"></div>
+</div>
+
+<!-- ===== SLIDE 27: RAG EVALUATION ===== -->
+<div class="slide" data-slide="27">
+  <h2>RAG Evaluation</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Retrieval Metrics</h3>
+      <ul>
+        <li><span class="highlight">Recall@k</span> — % of relevant docs in top-k</li>
+        <li><span class="highlight">MRR</span> — Mean reciprocal rank</li>
+        <li><span class="highlight">NDCG@k</span> — Rank-aware relevance</li>
+        <li><span class="highlight">Precision@k</span> — % of top-k that are relevant</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Generation Metrics</h3>
+      <ul>
+        <li><span class="highlight">Faithfulness</span> — % of claims supported by context</li>
+        <li><span class="highlight">Answer relevancy</span> — Does answer address query?</li>
+        <li><span class="highlight">Citation accuracy</span> — Correct source attribution</li>
+        <li><span class="highlight">Hallucination rate</span> — Unsupportable claims</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:15px;">
+    <h3>Evaluation Frameworks</h3>
+    <p><span class="tag">RAGAS</span> <span class="tag">TruLens</span> <span class="tag">DeepEval</span> <span class="tag">LangSmith</span> <span class="tag">Arize</span> — Automated eval with LLM-as-judge and human annotation.</p>
+  </div>
+  <div class="slide-number">27 / 50</div><div class="slide-progress" style="width:54%"></div>
+</div>
+
+<!-- ===== SLIDE 28: RAG CHALLENGES ===== -->
+<div class="slide" data-slide="28">
+  <h2>RAG — Common Pitfalls &amp; Fixes</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Lost in the Middle</h3><p>LLMs focus on top/bottom of context, ignore middle. Fix: re-rank, place best docs first and last.</p></div>
+    <div class="card"><h3>Chunk Boundary Issues</h3><p>Answer spans across chunks. Fix: overlapping chunks, sentence-window retrieval, or late chunking.</p></div>
+    <div class="card"><h3>Stale Index</h3><p>Knowledge changes but index is outdated. Fix: incremental indexing, TTL-based refresh, change detection.</p></div>
+    <div class="card"><h3>Query Ambiguity</h3><p>Vague queries retrieve garbage. Fix: query rewriting, clarification agents, HyDE.</p></div>
+    <div class="card"><h3>Over-Retrieval</h3><p>Too many chunks exceed LLM context. Fix: compression, stricter top-k, better chunking.</p></div>
+    <div class="card"><h3>Latency</h3><p>Embedding + retrieval + generation. Fix: caching, async pipeline, smaller models for retrieval.</p></div>
+  </div>
+  <div class="slide-number">28 / 50</div><div class="slide-progress" style="width:56%"></div>
+</div>
+
+<!-- ===== SLIDE 29: RAG IN PRODUCTION ===== -->
+<div class="slide" data-slide="29">
+  <h2>Production RAG Stack</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>ETL &amp; Indexing Pipeline</h3>
+      <div class="code">Unstructured.io -> Chunking -><br>Embedding -> Vector DB</div>
+      <p>Document parsing (PDF, HTML, PPTX), cleaning, chunking, embedding.</p>
+    </div>
+    <div class="card">
+      <h3>Serving Stack</h3>
+      <div class="code">Query -> Router -> Retriever -><br>Reranker -> LLM -> Post-processing</div>
+      <p>Async, cached, monitored. A/B testable retrieval strategies.</p>
+    </div>
+    <div class="card">
+      <h3>Observability</h3>
+      <p>Trace every step: query, retrieved chunks, reranker scores, LLM response, citations. Alert on low recall or high hallucination.</p>
+    </div>
+    <div class="card">
+      <h3>Continuous Improvement</h3>
+      <p>Log user feedback, mark bad retrievals, re-chunk problematic documents, fine-tune embedding models on domain data.</p>
+    </div>
+  </div>
+  <div class="slide-number">29 / 50</div><div class="slide-progress" style="width:58%"></div>
+</div>
+
+<!-- ===== SLIDE 30: RAG + AGENTS ===== -->
+<div class="slide" data-slide="30">
+  <h2>RAG + Agents = Agentic RAG</h2>
+  <p>The convergence: an agent that <span class="highlight">decides how and when to retrieve</span> knowledge.</p>
+  <div class="diagram-box" style="margin-top:20px;">
+    User: "Compare Q2 vs Q3 revenue for the EU region"<br><br>
+    Agent Thought: I need financial data. I'll query the vector store<br>
+    with "EU Q2 2025 revenue" and "EU Q3 2025 revenue".<br>
+    If not found, I'll search the web and scrape earnings reports.<br><br>
+    Action: search_vector_db("EU Q2 2025 revenue")<br>
+    Observation: Partial data found (Q2 only, missing Q3).<br><br>
+    Action: search_web("EU region Q3 2025 revenue report")<br>
+    Observation: Found report at investor-relations.example.com<br><br>
+    Action: scrape_url("investor-relations.example.com/q3")<br>
+    Observation: Q3 EU revenue = $4.2B<br><br>
+    Final Answer: Q2: $3.8B, Q3: $4.2B, Growth: +10.5%
+  </div>
+  <div class="slide-number">30 / 50</div><div class="slide-progress" style="width:60%"></div>
+</div>
+
+<!-- ===== SLIDE 31: MULTI-MODAL RAG ===== -->
+<div class="slide" data-slide="31">
+  <h2>Multi-Modal RAG</h2>
+  <p>Retrieve and reason over images, tables, charts, and audio alongside text.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Architecture</h3>
+      <div class="code">Document -> [Text Chunks] -> Text Embeddings<br>         -> [Images]      -> Image Embeddings<br>         -> [Tables]      -> Table Embeddings<br><br>Query -> Multi-modal encoder -><br>  Hybrid retrieval across all modalities<br>  -> VLM generates answer</div>
+    </div>
+    <div class="card">
+      <h3>Use Cases</h3>
+      <ul>
+        <li>PDF analysis (text + figures + tables)</li>
+        <li>Medical imaging + radiology reports</li>
+        <li>Slide decks with charts + narrative</li>
+        <li>Video transcripts + frame retrieval</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">31 / 50</div><div class="slide-progress" style="width:62%"></div>
+</div>
+
+<!-- ===== SLIDE 32: THE FUTURE OF RAG ===== -->
+<div class="slide" data-slide="32">
+  <h2>Where RAG Is Heading</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Long-Context LLMs</h3><p>1M+ token context windows reduce the need for retrieval. But cost and latency still favor RAG for most use cases.</p></div>
+    <div class="card"><h3>Learned Retrieval</h3><p>Models that natively learn when and what to retrieve (e.g., RETRO, Atlas). Retrieval as part of the model architecture.</p></div>
+    <div class="card"><h3>Agentic Knowledge Management</h3><p>Agents proactively curate knowledge: identify gaps, trigger indexing, summarize and merge documents.</p></div>
+    <div class="card"><h3>Personalized RAG</h3><p>User-specific retrieval: re-rank based on user history, role, preferences. Context-aware personalization.</p></div>
+    <div class="card"><h3>Benchmarks for RAG</h3><p>Standardized eval suites: RGB, CRUD, FRAMES. Better metrics for faithfulness and citation quality.</p></div>
+    <div class="card"><h3>RAG-as-a-Service</h3><p>Managed RAG APIs (OpenAI, Cohere, Google). Bring your own data, get a hosted RAG pipeline in minutes.</p></div>
+  </div>
+  <div class="slide-number">32 / 50</div><div class="slide-progress" style="width:64%"></div>
+</div>
+
+<!-- ===== SLIDE 33: PART III INTRO ===== -->
+<div class="slide" data-slide="33">
+  <div class="hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div style="font-size:0.85em;letter-spacing:3px;color:#80868B;margin-bottom:10px;text-transform:uppercase;">Part III</div>
+    <h1>Model Context Protocol</h1>
+    <p class="subtitle">Standardizing AI-to-tool communication</p>
+  </div>
+  <div class="slide-number">33 / 50</div><div class="slide-progress" style="width:66%"></div>
+</div>
+
+<!-- ===== SLIDE 34: WHAT IS MCP ===== -->
+<div class="slide" data-slide="34">
+  <h2>What is the Model Context Protocol?</h2>
+  <div class="two-col">
+    <div>
+      <p>MCP is an <span class="highlight">open protocol</span> (Anthropic-led) that standardizes how AI applications connect to external tools, data sources, and services.</p>
+      <p style="margin-top:15px;">Think of it as <span class="highlight">"USB-C for AI"</span> — a universal connector instead of a dozen proprietary integrations.</p>
+      <ul style="margin-top:15px;">
+        <li>Open standard (not tied to one provider)</li>
+        <li>JSON-RPC based messaging</li>
+        <li>Client-server architecture</li>
+        <li>Built-in security model</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Without MCP</h3>
+      <p style="color:#FDD663;">Every agent framework reinvents tool integrations. Fragmented, non-portable, duplicated effort.</p>
+      <h3 style="margin-top:20px;">With MCP</h3>
+      <p style="color:#81C995;">One protocol. Any MCP server works with any MCP client. Plug and play.</p>
+    </div>
+  </div>
+  <div class="slide-number">34 / 50</div><div class="slide-progress" style="width:68%"></div>
+</div>
+
+<!-- ===== SLIDE 35: MCP ARCHITECTURE ===== -->
+<div class="slide" data-slide="35">
+  <h2>MCP Architecture</h2>
+  <div class="diagram-box">
+    +---------------+        JSON-RPC        +---------------+<br>
+    |  MCP Client   | <---------------------> |  MCP Server   |<br>
+    | (Host App)    |   (stdin/stdio or SSE)  | (Tool Host)   |<br>
+    +---------------+                        +---------------+<br>
+           |                                         |<br>
+           |  Session lifecycle:                      |<br>
+           |  Initialize -> List Resources/Tools      |<br>
+           |  -> Read Resource / Call Tool             |<br>
+           |  -> Subscribe to notifications            |<br>
+           v                                         v<br>
+    +-----------+                           +-----------+<br>
+    |   Agent   |                           | External  |<br>
+    |   / LLM   |                           |  APIs     |<br>
+    +-----------+                           +-----------+
+  </div>
+  <div class="grid-2" style="margin-top:10px;">
+    <div class="card"><h3>Client (Host)</h3><p>The AI application — agent framework, IDE, CLI tool. Initiates connection and manages sessions.</p></div>
+    <div class="card"><h3>Server</h3><p>Exposes capabilities: tools, resources, prompts. Can run locally or remotely.</p></div>
+  </div>
+  <div class="slide-number">35 / 50</div><div class="slide-progress" style="width:70%"></div>
+</div>
+
+<!-- ===== SLIDE 36: TRANSPORT ===== -->
+<div class="slide" data-slide="36">
+  <h2>Transport Layer</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>stdio Transport</h3>
+      <p>Parent process spawns child MCP server. Communication over stdin/stdout. Fast, simple, local-only.</p>
+      <div class="code">// Client spawns server process<br>const server = spawn("mcp-server", []);<br>server.stdin.write(jsonRpcRequest);<br>server.stdout.on("data", handleResponse);</div>
+    </div>
+    <div class="card">
+      <h3>SSE Transport</h3>
+      <p>Server-Sent Events over HTTP. Supports remote MCP servers, streaming, and reconnection.</p>
+      <div class="code">// Server runs HTTP SSE endpoint<br>POST /mcp  (JSON-RPC request)<br>GET  /mcp  (SSE stream for responses)</div>
+    </div>
+    <div class="card">
+      <h3>Streamable HTTP (Experimental)</h3>
+      <p>HTTP with streaming responses. Combines request/response with server-sent events.</p>
+    </div>
+    <div class="card">
+      <h3>Transport Comparison</h3>
+      <p><span class="highlight">stdio:</span> Lowest latency, local only<br><span class="highlight">SSE:</span> Remote capable, persistent connection<br><span class="highlight">HTTP:</span> Stateless, firewall-friendly</p>
+    </div>
+  </div>
+  <div class="slide-number">36 / 50</div><div class="slide-progress" style="width:72%"></div>
+</div>
+
+<!-- ===== SLIDE 37: MCP PRIMITIVES - TOOLS ===== -->
+<div class="slide" data-slide="37">
+  <h2>MCP Primitives: Tools</h2>
+  <p>Tools are functions the model can call. They are the primary way agents take action.</p>
+  <div class="two-col" style="margin-top:15px;">
+    <div class="card">
+      <h3>Tool Definition</h3>
+      <div class="code">{
+  "name": "get_weather",
+  "description": "Get current weather",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "city": { "type": "string" }
+    },
+    "required": ["city"]
+  }
+}</div>
+    </div>
+    <div class="card">
+      <h3>Tool Call</h3>
+      <div class="code">// Request<br>{
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": { "city": "Tokyo" }
+  }
+}<br><br>// Response<br>{
+  "content": [{ "type": "text",<br>    "text": "Tokyo: 28C, clear" }],
+  "isError": false
+}</div>
+    </div>
+  </div>
+  <div class="slide-number">37 / 50</div><div class="slide-progress" style="width:74%"></div>
+</div>
+
+<!-- ===== SLIDE 38: MCP PRIMITIVES - RESOURCES ===== -->
+<div class="slide" data-slide="38">
+  <h2>MCP Primitives: Resources</h2>
+  <p>Resources expose <span class="highlight">data</span> to the model — documents, database records, images, logs. Like a read-only filesystem for AI.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Resource Definition</h3>
+      <div class="code">{
+  "uri": "docs://project/api.md",
+  "name": "API Documentation",
+  "mimeType": "text/markdown",
+  "description": "Project API reference"
+}</div>
+    </div>
+    <div class="card">
+      <h3>Resource Templates</h3>
+      <div class="code">{
+  "uriTemplate": "db://users/{id}",
+  "name": "User Record",
+  "variables": { "id": "string" }
+}<br><br>// Read: db://users/42</div>
+    </div>
+    <div class="card">
+      <h3>Resource Contents</h3>
+      <ul>
+        <li><span class="highlight">Text</span> — markdown, code, logs</li>
+        <li><span class="highlight">Blob</span> — images, PDFs, binaries (base64)</li>
+        <li><span class="highlight">JSON</span> — structured data</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Use Cases</h3>
+      <ul>
+        <li>Reference documentation</li>
+        <li>Database records</li>
+        <li>Project source files</li>
+        <li>Knowledge base articles</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">38 / 50</div><div class="slide-progress" style="width:76%"></div>
+</div>
+
+<!-- ===== SLIDE 39: MCP PRIMITIVES - PROMPTS ===== -->
+<div class="slide" data-slide="39">
+  <h2>MCP Primitives: Prompts</h2>
+  <p>Prompts are <span class="highlight">templated messages</span> that guide model behavior. Servers expose pre-built prompts for common tasks.</p>
+  <div class="two-col" style="margin-top:20px;">
+    <div class="card">
+      <h3>Prompt Definition</h3>
+      <div class="code">{
+  "name": "code_review",
+  "description": "Review a code change",
+  "arguments": [
+    { "name": "code", "required": true },
+    { "name": "language", "required": false }
+  ]
+}</div>
+    </div>
+    <div class="card">
+      <h3>Prompt Result</h3>
+      <div class="code">{
+  "messages": [
+    { "role": "system",
+      "content": { "type": "text",
+        "text": "Review this {{language}} code..." } },
+    { "role": "user",
+      "content": { "type": "text",
+        "text": "{{code}}" } }
+  ]
+}</div>
+    </div>
+  </div>
+  <p style="margin-top:15px;">Clients can use these prompts as building blocks for complex agent workflows.</p>
+  <div class="slide-number">39 / 50</div><div class="slide-progress" style="width:78%"></div>
+</div>
+
+<!-- ===== SLIDE 40: SAMPLING (REVERSE) ===== -->
+<div class="slide" data-slide="40">
+  <h2>MCP Primitives: Sampling</h2>
+  <p><span class="highlight">Server-to-client</span> LLM request. A server can ask the client to generate text — enabling agent-to-agent, summarization, and moderation flows.</p>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>How Sampling Works</h3>
+      <div class="code">// Server requests LLM generation<br>{
+  "method": "sampling/createMessage",
+  "params": {
+    "messages": [{ "role": "user",<br>      "content": "Summarize: ..." }],
+    "modelPreferences": {
+      "hints": [{ "name": "claude-3" }],
+      "costPriority": 0.5
+    }
+  }
+}</div>
+    </div>
+    <div class="card">
+      <h3>Use Cases</h3>
+      <ul>
+        <li>Server delegates summarization to client's LLM</li>
+        <li>Moderation / content checks</li>
+        <li>Multi-step tool orchestration</li>
+        <li>User confirmation prompts</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-number">40 / 50</div><div class="slide-progress" style="width:80%"></div>
+</div>
+
+<!-- ===== SLIDE 41: ROOT & NOTIFICATIONS ===== -->
+<div class="slide" data-slide="41">
+  <h2>Roots &amp; Notifications</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Roots</h3>
+      <p>The client tells the server about its <span class="highlight">workspace</span> — directories, URLs, or resources the server is allowed to access.</p>
+      <div class="code">{
+  "method": "roots/list",
+  "params": {}
+}
+// Response: ["file:///project/src",
+//            "file:///project/docs"]</div>
+    </div>
+    <div class="card">
+      <h3>Notifications</h3>
+      <p>Real-time updates. Servers push changes when resources or tools change. Clients push cancellation or progress.</p>
+      <div class="code">// Server notifies of resource change<br>{
+  "method": "notifications/resources/list_changed"
+}
+// Server notifies of tool list change<br>{
+  "method": "notifications/tools/list_changed"
+}</div>
+    </div>
+  </div>
+  <p>Together they enable <span class="highlight">dynamic, responsive</span> integrations — the server adapts to the client's environment.</p>
+  <div class="slide-number">41 / 50</div><div class="slide-progress" style="width:82%"></div>
+</div>
+
+<!-- ===== SLIDE 42: MCP SECURITY ===== -->
+<div class="slide" data-slide="42">
+  <h2>MCP Security Model</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>Host Controls</h3>
+      <p>The host application retains full control over which MCP servers to connect, what resources to share, and which tool calls to approve.</p>
+    </div>
+    <div class="card">
+      <h3>User Consent</h3>
+      <p>Users must explicitly approve server connections, resource access, and potentially dangerous tool calls (e.g., file write, shell exec).</p>
+    </div>
+    <div class="card">
+      <h3>Least Privilege</h3>
+      <p>Servers only access resources within declared roots. No arbitrary filesystem or network access without explicit permission.</p>
+    </div>
+    <div class="card">
+      <h3>Audit Logging</h3>
+      <p>All tool calls, resource reads, and sampling requests are logged. Full traceability for security review.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:15px;">
+    <h3>Security Recommendations</h3>
+    <p>Run remote MCP servers with authentication. Validate all tool arguments server-side. Never expose MCP servers to untrusted clients without sandboxing.</p>
+  </div>
+  <div class="slide-number">42 / 50</div><div class="slide-progress" style="width:84%"></div>
+</div>
+
+<!-- ===== SLIDE 43: MCP IN THE ECOSYSTEM ===== -->
+<div class="slide" data-slide="43">
+  <h2>MCP Ecosystem (2026)</h2>
+  <div class="grid-3">
+    <div class="card"><h3>Official SDKs</h3><p>TypeScript, Python, Java, Kotlin. Reference implementations maintained by Anthropic.</p></div>
+    <div class="card"><h3>Hosts / Clients</h3><p><span class="tag">Claude Desktop</span> <span class="tag">OpenCode</span> <span class="tag">VS Code (Cline)</span> <span class="tag">Continue.dev</span> <span class="tag">Windsurf</span> <span class="tag">Cursor</span></p></div>
+    <div class="card"><h3>Server Registries</h3><p><span class="tag">npm @modelcontextprotocol</span> <span class="tag">PyPI mcp</span> <span class="tag">Smithery</span> <span class="tag">MCPHub</span></p></div>
+    <div class="card"><h3>Tool Servers</h3><p>Filesystem, GitHub, Slack, Postgres, Brave Search, Puppeteer, Docker, Kubernetes, SQLite</p></div>
+    <div class="card"><h3>Framework Integration</h3><p>LangChain, CrewAI, AutoGen, Semantic Kernel all support MCP tools natively.</p></div>
+    <div class="card"><h3>API Gateways</h3><p>Azure API Management, Kong, Envoy adding MCP support for enterprise governance.</p></div>
+  </div>
+  <div class="slide-number">43 / 50</div><div class="slide-progress" style="width:86%"></div>
+</div>
+
+<!-- ===== SLIDE 44: BUILDING AN MCP SERVER ===== -->
+<div class="slide" data-slide="44">
+  <h2>Building an MCP Server (Python)</h2>
+  <div class="code" style="white-space:pre-wrap;font-size:0.82em;">from mcp.server import Server, NotificationOptions
+from mcp.server.models import InitializationOptions
+
+server = Server("weather-server")
+
+@server.list_tools()
+async def handle_list_tools():
+    return [{
+        "name": "get_forecast",
+        "description": "Get weather forecast",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string"},
+                "days": {"type": "integer", "default": 3}
+            },
+            "required": ["city"]
+        }
+    }]
+
+@server.call_tool()
+async def handle_call_tool(name: str, args: dict):
+    if name == "get_forecast":
+        data = await fetch_weather(args["city"], args.get("days", 3))
+        return [{"type": "text", "text": json.dumps(data)}]
+
+async def main():
+    async with server.run_stdio() as run:
+        await run()</div>
+  <div class="slide-number">44 / 50</div><div class="slide-progress" style="width:88%"></div>
+</div>
+
+<!-- ===== SLIDE 45: MCP VS FUNCTION CALLING ===== -->
+<div class="slide" data-slide="45">
+  <h2>MCP vs Native Function Calling</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3>OpenAI Function Calling</h3>
+      <ul>
+        <li>Tightly coupled to one provider</li>
+        <li>Tools defined inline in each request</li>
+        <li>No standard discovery mechanism</li>
+        <li>No resource abstraction</li>
+        <li>No lifecycle management</li>
+        <li>Works only with OpenAI models</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>MCP</h3>
+      <ul>
+        <li>Provider-agnostic protocol</li>
+        <li>Tools discovered via standard API</li>
+        <li>Dynamic tool/resource lists</li>
+        <li>Resources + Prompts + Tools</li>
+        <li>Session lifecycle, notifications</li>
+        <li>Works with any model via any host</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:15px;text-align:center;">MCP doesn't replace function calling — it <span class="highlight">standardizes the layer above it</span>.</p>
+  <div class="slide-number">45 / 50</div><div class="slide-progress" style="width:90%"></div>
+</div>
+
+<!-- ===== SLIDE 46: MCP USE CASES ===== -->
+<div class="slide" data-slide="46">
+  <h2>Real-World MCP Use Cases</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>AI-Powered IDE</h3><p>VS Code extension connects to filesystem MCP, GitHub MCP, terminal MCP. Agent reads files, commits code, runs tests.</p></div>
+    <div class="card"><h3>Customer Support Agent</h3><p>MCP servers for CRM, knowledge base, ticketing system, and email. Agent handles end-to-end support workflows.</p></div>
+    <div class="card"><h3>Database Administrator</h3><p>Postgres MCP + Kubernetes MCP + Monitoring MCP. Agent diagnoses slow queries, scales pods, and optimizes schemas.</p></div>
+    <div class="card"><h3>Research Assistant</h3><p>Web search MCP + PDF reader MCP + ArXiv API MCP + Note-taking MCP. Agent conducts literature surveys.</p></div>
+    <div class="card"><h3>DevOps Pipeline</h3><p>CI/CD MCP + Cloud provider MCP + Incident management MCP. Agent triages alerts, rolls back deployments, and runs diagnostics.</p></div>
+    <div class="card"><h3>Data Analysis Platform</h3><p>SQL MCP + Pandas execution MCP + Visualization MCP. Agent explores data, runs statistical tests, and generates charts.</p></div>
+  </div>
+  <div class="slide-number">46 / 50</div><div class="slide-progress" style="width:92%"></div>
+</div>
+
+<!-- ===== SLIDE 47: BRINGING IT ALL TOGETHER ===== -->
+<div class="slide" data-slide="47">
+  <h2>The Trinity: Agents + RAG + MCP</h2>
+  <div class="diagram-box" style="font-size:0.8em;">
+    +----------------------------------------------------------+<br>
+    |                     Agentic AI                            |<br>
+    |  (Planning, Reasoning, Multi-step Execution, Reflection)  |<br>
+    +----------------------------------------------------------+<br>
+         |                           |                          |<br>
+         v                           v                          v<br>
+    +-----------+            +---------------+          +-----------+<br>
+    |  RAG      |            |    MCP        |          | Memory   |<br>
+    | (External |            |  (Tools,      |          | (Short + |<br>
+    |  Knowledge|            |   Resources,  |          |  Long)   |<br>
+    |  + Vector |            |   Prompts)    |          |          |<br>
+    |  Search)  |            |               |          |          |<br>
+    +-----------+            +---------------+          +-----------+<br>
+         |                           |                          |<br>
+         v                           v                          v<br>
+    +----------------------------------------------------------+<br>
+    |             External World (APIs, DBs, Web, Files)        |<br>
+    +----------------------------------------------------------+<br>
+  </div>
+  <p style="text-align:center;margin-top:15px;"><span class="highlight">Retrieval</span> grounds the agent. <span class="highlight">MCP</span> empowers it. <span class="highlight">Memory</span> sustains it.</p>
+  <div class="slide-number">47 / 50</div><div class="slide-progress" style="width:94%"></div>
+</div>
+
+<!-- ===== SLIDE 48: ARCHITECTURE DECISIONS ===== -->
+<div class="slide" data-slide="48">
+  <h2>Architecture Decision Guide</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>When to use RAG?</h3><p>Need factual grounding, citations, dynamic knowledge. Avoid: when all knowledge fits in context or data is highly structured (use SQL instead).</p></div>
+    <div class="card"><h3>When to use Agents?</h3><p>Multi-step tasks, tool orchestration, autonomous decision making. Avoid: simple Q&A, single-turn classification.</p></div>
+    <div class="card"><h3>When to use MCP?</h3><p>Multiple tools, provider-agnostic design, pluggable architecture. Avoid: one-off simple integration with a single API.</p></div>
+    <div class="card"><h3>When to combine all three?</h3><p>Complex enterprise workflows: support bots, research assistants, DevOps automation, code generation platforms.</p></div>
+  </div>
+  <div class="slide-number">48 / 50</div><div class="slide-progress" style="width:96%"></div>
+</div>
+
+<!-- ===== SLIDE 49: FUTURE TRENDS ===== -->
+<div class="slide" data-slide="49">
+  <h2>Looking Ahead: 2026 &amp; Beyond</h2>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card"><h3>Convergence</h3><p>RAG pipelines are becoming MCP servers. Agent frameworks are becoming MCP hosts. The stack is standardizing.</p></div>
+    <div class="card"><h3>Small, Specialized Models</h3><p>Small embedding models, small rerankers, small agents. Distillation enables on-device intelligence.</p></div>
+    <div class="card"><h3>Multi-Modal Everything</h3><p>Agents that see, hear, and interact with the physical world. MCP extending to vision and audio tools.</p></div>
+    <div class="card"><h3>Regulatory Compliance</h3><p>EU AI Act, US executive orders. Traceable agent decisions, grounded RAG outputs, auditable MCP call logs.</p></div>
+    <div class="card"><h3>Self-Improving Systems</h3><p>Agents that evaluate their own RAG quality, register new MCP tools, and optimize their own prompts at runtime.</p></div>
+    <div class="card"><h3>Open Ecosystems</h3><p>Open-source models + open protocols + open tool registries. The AI stack is becoming as standardized as the web.</p></div>
+  </div>
+  <div class="slide-number">49 / 50</div><div class="slide-progress" style="width:98%"></div>
+</div>
+
+<!-- ===== SLIDE 50: Q&A ===== -->
+<div class="slide" data-slide="50">
+  <div class="hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <h1>Thank You</h1>
+    <p class="subtitle" style="font-size:1.5em;margin-bottom:30px;">Questions &amp; Discussion</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <span class="tag" style="font-size:1em;padding:8px 20px;">Agentic AI</span>
+      <span class="tag" style="font-size:1em;padding:8px 20px;">RAG</span>
+      <span class="tag" style="font-size:1em;padding:8px 20px;">MCP</span>
+    </div>
+    <p style="margin-top:40px;color:#80868B;">Full slide deck available at this URL</p>
+  </div>
+  <div class="slide-number">50 / 50</div><div class="slide-progress" style="width:100%"></div>
+</div>
+
+<!-- ===== NAVIGATION ===== -->
+<div class="nav">
+  <button id="prevBtn" onclick="navigate(-1)">&#8592;</button>
+  <button id="nextBtn" onclick="navigate(1)">&#8594;</button>
+</div>
+
+<script>
+  let currentSlide = 1;
+  const totalSlides = 50;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    const slide = document.querySelector(`.slide[data-slide="${n}"]`);
+    if (slide) slide.classList.add('active');
+    currentSlide = n;
+  }
+
+  function navigate(dir) {
+    const next = Math.max(1, Math.min(totalSlides, currentSlide + dir));
+    if (next !== currentSlide) showSlide(next);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.nav') || e.target.closest('.slide-number') || e.target.closest('.slide-progress')) return;
+    const rect = document.body.getBoundingClientRect();
+    if (e.clientX > rect.width * 0.7) navigate(1);
+    else if (e.clientX < rect.width * 0.3) navigate(-1);
+  });
+
+  showSlide(1);
+</script>
+</body>
+</html>

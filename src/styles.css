@@ -1,0 +1,217 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * GiriBioAI design system.
+ *
+ * Google palette: Blue leads, Green and Yellow support, Red is reserved for
+ * genuine error states only (destructive). Light is the default; `.dark` on
+ * <html> switches to Google dark surfaces with pastel brand tones.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utilities
+ * (e.g. --color-primary -> bg-primary, text-primary). All colours use oklch.
+ *
+ * Semantic status tokens:
+ *   success (green)  - correct, fits, best
+ *   warning (yellow) - tight, needs attention, wrong-but-learnable
+ *   info    (blue)   - neutral notes, offload
+ *   destructive (red)- real errors only
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-g-blue: var(--g-blue);
+  --color-g-green: var(--g-green);
+  --color-g-yellow: var(--g-yellow);
+  --color-g-red: var(--g-red);
+  --color-g-cyan: var(--g-cyan);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.75rem;
+  --g-blue: oklch(0.56 0.19 259);   /* #1A73E8 accessible Google Blue */
+  --g-green: oklch(0.53 0.14 148);  /* #188038 */
+  --g-yellow: oklch(0.62 0.14 75);  /* deep Google Yellow, readable on white */
+  --g-red: oklch(0.58 0.2 28);      /* #D93025 */
+  --g-cyan: oklch(0.6 0.11 215);    /* #129EAF */
+  --background: oklch(0.99 0.001 250);
+  --foreground: oklch(0.24 0.005 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.005 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.005 270);
+  --primary: var(--g-blue);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.003 240);
+  --secondary-foreground: oklch(0.24 0.005 270);
+  --muted: oklch(0.96 0.003 240);
+  --muted-foreground: oklch(0.5 0.01 250);
+  --accent: oklch(0.95 0.025 255);  /* #E8F0FE blue tint for hovers */
+  --accent-foreground: oklch(0.45 0.17 259);
+  --success: var(--g-green);
+  --success-foreground: oklch(1 0 0);
+  --warning: var(--g-yellow);
+  --warning-foreground: oklch(0.24 0.005 270);
+  --info: var(--g-blue);
+  --info-foreground: oklch(1 0 0);
+  --destructive: var(--g-red);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.89 0.006 260);
+  --input: oklch(0.86 0.006 260);
+  --ring: var(--g-blue);
+  --chart-1: oklch(0.62 0.18 259);  /* #4285F4 */
+  --chart-2: oklch(0.65 0.16 145);  /* #34A853 */
+  --chart-3: oklch(0.83 0.17 83);   /* #FBBC05 */
+  --chart-4: oklch(0.7 0.12 210);   /* #24C1E0 */
+  --chart-5: oklch(0.63 0.21 29);   /* #EA4335, used last and sparingly */
+  --sidebar: oklch(0.98 0.002 250);
+  --sidebar-foreground: oklch(0.24 0.005 270);
+  --sidebar-primary: var(--g-blue);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.025 255);
+  --sidebar-accent-foreground: oklch(0.45 0.17 259);
+  --sidebar-border: oklch(0.89 0.006 260);
+  --sidebar-ring: var(--g-blue);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --grad-brand: linear-gradient(90deg, oklch(0.62 0.18 259) 0%, oklch(0.6 0.15 148) 55%, oklch(0.72 0.16 80) 100%);
+  --grad-cool: linear-gradient(135deg, oklch(0.62 0.18 259) 0%, oklch(0.7 0.12 210) 100%);
+  --shadow-glow: 0 1px 2px oklch(0.24 0.005 270 / 0.12), 0 4px 16px -4px oklch(0.56 0.19 259 / 0.35);
+  --body-glow-1: oklch(0.62 0.18 259 / 0.06);
+  --body-glow-2: oklch(0.65 0.16 145 / 0.05);
+  --grid-line: oklch(0.89 0.006 260 / 0.7);
+}
+
+.dark {
+  --g-blue: oklch(0.76 0.11 260);   /* #8AB4F8 */
+  --g-green: oklch(0.78 0.1 150);   /* #81C995 */
+  --g-yellow: oklch(0.88 0.13 90);  /* #FDD663 */
+  --g-red: oklch(0.73 0.13 25);     /* #F28B82 */
+  --g-cyan: oklch(0.8 0.09 210);    /* #78D9EC */
+  --background: oklch(0.2 0.005 270);
+  --foreground: oklch(0.93 0.004 260);
+  --card: oklch(0.25 0.006 270);
+  --card-foreground: oklch(0.93 0.004 260);
+  --popover: oklch(0.27 0.006 270);
+  --popover-foreground: oklch(0.93 0.004 260);
+  --primary: var(--g-blue);
+  --primary-foreground: oklch(0.2 0.03 260);
+  --secondary: oklch(0.31 0.006 270);
+  --secondary-foreground: oklch(0.93 0.004 260);
+  --muted: oklch(0.29 0.006 270);
+  --muted-foreground: oklch(0.72 0.01 250);
+  --accent: oklch(0.33 0.04 260);
+  --accent-foreground: oklch(0.85 0.08 260);
+  --success: var(--g-green);
+  --success-foreground: oklch(0.2 0.03 150);
+  --warning: var(--g-yellow);
+  --warning-foreground: oklch(0.22 0.03 80);
+  --info: var(--g-blue);
+  --info-foreground: oklch(0.2 0.03 260);
+  --destructive: var(--g-red);
+  --destructive-foreground: oklch(0.2 0.03 25);
+  --border: oklch(0.38 0.008 260);
+  --input: oklch(0.4 0.008 260);
+  --ring: var(--g-blue);
+  --chart-1: oklch(0.76 0.11 260);
+  --chart-2: oklch(0.78 0.1 150);
+  --chart-3: oklch(0.88 0.13 90);
+  --chart-4: oklch(0.8 0.09 210);
+  --chart-5: oklch(0.73 0.13 25);
+  --sidebar: oklch(0.23 0.006 270);
+  --sidebar-foreground: oklch(0.93 0.004 260);
+  --sidebar-primary: var(--g-blue);
+  --sidebar-primary-foreground: oklch(0.2 0.03 260);
+  --sidebar-accent: oklch(0.33 0.04 260);
+  --sidebar-accent-foreground: oklch(0.85 0.08 260);
+  --sidebar-border: oklch(0.38 0.008 260);
+  --sidebar-ring: var(--g-blue);
+  --grad-brand: linear-gradient(90deg, oklch(0.76 0.11 260) 0%, oklch(0.78 0.1 150) 55%, oklch(0.88 0.13 90) 100%);
+  --grad-cool: linear-gradient(135deg, oklch(0.76 0.11 260) 0%, oklch(0.8 0.09 210) 100%);
+  --shadow-glow: 0 0 0 1px oklch(0.76 0.11 260 / 0.25), 0 8px 30px -8px oklch(0.76 0.11 260 / 0.35);
+  --body-glow-1: oklch(0.76 0.11 260 / 0.07);
+  --body-glow-2: oklch(0.78 0.1 150 / 0.05);
+  --grid-line: oklch(0.38 0.008 260 / 0.5);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    background-image:
+      radial-gradient(circle at 20% 0%, var(--body-glow-1), transparent 50%),
+      radial-gradient(circle at 90% 100%, var(--body-glow-2), transparent 50%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; }
+  code, pre, .font-mono { font-family: var(--font-mono); }
+}
+
+@utility text-gradient-brand {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility surface-grid {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

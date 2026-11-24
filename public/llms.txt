@@ -1,0 +1,40 @@
+# GiriBioAI
+
+> An interactive lab to learn how AI and large language models work, from tokens, embeddings and attention to sampling, training, RAG, agents, evals and Bio-AI. Everything is simulated in the browser.
+
+GiriBioAI is a free educational web app for beginners who want to understand the moving parts of modern LLMs, and how the same ideas apply to DNA, proteins and molecules, without a GPU or API keys. Developed by Girinath G Pillai with AI assistance.
+
+## Foundations
+- [Neural Network Basics](/neural-networks): A single-neuron playground and a tiny network trained live with gradient descent.
+- [Tokens](/tokens): How text becomes integers via BPE-style tokenization.
+- [Vocabulary](/vocabulary): How a model's vocabulary is built and why size matters.
+- [Pre-training](/pretraining): Next-token prediction, with a tiny in-browser bigram trainer.
+- [Fine-tuning](/finetuning): Loss-curve simulator for full, LoRA, and RLHF training.
+
+## Inside the model
+- [Embeddings & Attention](/embeddings): A 2D embedding map, vector arithmetic and a toy self-attention heatmap.
+- [Transformer Walkthrough](/transformer): Step through one GPT block number by number, from embeddings to next-token logits.
+- [Sampling & Decoding](/sampling): Temperature, top-k, top-p, repetition penalty, greedy and beam search.
+- [Context, KV Cache & MoE](/context): Context windows, KV cache memory and Mixture-of-Experts routing.
+
+## Building with LLMs
+- [Prompt Builder](/prompt-builder): Compose role, context, task, format and constraints.
+- [Prompt Training](/prompt-training): Seven prompting habits with a quiz.
+- [RAG](/rag): Retrieval-Augmented Generation with a live TF-IDF retriever. Lab settings can be shared as links.
+- [Orchestration](/orchestration): Compose routers, tools, and agents into a flow.
+- [Agent Loop Tracer](/agent-loop): Step through a tool-calling agent with MCP JSON-RPC messages and exact token counts.
+- [Evals, Safety & Quantization](/evals): Hallucination checks, LLM-as-judge, prompt injection defenses, quantization.
+
+## Bio-AI
+- [Bio-AI with LLMs](/bio-ai): DNA k-mers and codons, protein residues, SMILES tokens and a toy protein language model.
+
+## Labs
+- [Chat Simulator](/chat-sim): Tokens, cost and latency per chat message.
+- [Local LLM Setup](/local-llm-sim): GPU, OS, model, runtime and MCP setup walkthrough.
+- [Agentic AI, RAG & MCP slides](/agents-slides): A 50-slide deck.
+
+## Optional
+- [Home](/): Overview and curriculum.
+- [Learning path](/path): Tracks and progress.
+- [Glossary](/glossary): All key terms.
+- [About](/about): Mission and credits.
