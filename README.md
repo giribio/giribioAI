@@ -30,6 +30,23 @@ npm run build      # production build into .output/
 npm run preview    # serve the production build
 ```
 
+## Deploy (Cloudflare Workers, from GitHub)
+
+The build targets Cloudflare Workers (Worker name `giribioai`, set in `vite.config.ts`).
+
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a repository** → pick `giribio/giribioAI`.
+2. Project name: `giribioai` (must match the Worker name).
+3. Build command: `npm run build` · Deploy command: `npx wrangler deploy` · Root directory: `/`.
+4. Deploy. Every push to `main` rebuilds and redeploys automatically.
+5. Optional: **Settings → Domains & Routes** to add a custom domain.
+
+Test the exact production Worker locally:
+
+```bash
+npm run build
+npx wrangler dev      # http://localhost:8787
+```
+
 ## Project layout
 
 ```

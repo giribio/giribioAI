@@ -12,4 +12,14 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Cloudflare Workers deploy: pin the Worker name so Cloudflare's Git builds
+  // always match the Worker created in the dashboard (otherwise Nitro derives it
+  // from the git remote, which can differ in CI).
+  nitro: {
+    // Fixed Workers runtime version, so behaviour does not change with the build date.
+    compatibilityDate: "2026-11-01",
+    cloudflare: {
+      wrangler: { name: "giribioai" },
+    },
+  },
 });
